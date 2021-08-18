@@ -1,0 +1,40 @@
+-- Creating a procedure to update balance after every transaction
+DELIMITER $$
+
+CREATE PROCEDURE UpdateBalance (
+    IN accountID INT
+)
+BEGIN
+    UPDATE account
+    SET account.balance = (
+        SELECT SUM(transactions.amount)
+        FROM transactions
+        WHERE transactions.account_id = accountID
+    )
+    WHERE account.account_id = accountID;
+END $$
+
+
+-- Creating a procedure to make transactions
+DELIMITER $$
+
+CREATE PROCEDURE MakeTransaction (
+    IN accountID INT,
+    IN transactionAmount DECIMAL(6, 2),
+    IN transactionType CHAR(1)
+)
+BEGIN
+    IF transactionType = 'D' THEN
+        INSERT INTO transactions(account_id, amount, time) VALUES(
+            accountID, 
+            transactionAmount, 
+            SYSDATE()
+        );
+    ELSEIF transactionType = 'W' THEN
+        INSERT INTO transactions(account_id, amount, time) VALUES(
+            accountID, 
+            transactionAmount * -1, 
+            SYSDATE()
+        );
+    END IF;
+END $$
